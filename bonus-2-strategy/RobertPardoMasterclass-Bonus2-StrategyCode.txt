@@ -1,0 +1,230 @@
+
+
+{************************************************************
+
+PC_HLBOAwtRPT_VF Robert Pardo
+(C) Copyright 11/2016 Robert Pardo All Rights Reserved
+Period of High Low Range
+HLper Range Midpoint = Fast 10 / Intermediate 25 / Slow 50
+Latest Revision 01/07/2017 
+Latest Revision 01/14/2017 - Added Entry Filter
+Station has a big problem with ENF_Value, not accurate
+Latest Revision 01/18/2017 - Added RVol values at 3 (low vol) and 4 (high vol)
+
+*************************************************************}
+          
+          
+
+Inputs:        HLper(10),
+                   HL_Factor(1),
+                   Risk_On(0),
+                   RSpct(.25),
+                   Trail_On(0),
+                   TSpct(.5),
+                   Target_On(0),
+                   TApct(0),
+                   VF_Filter_Type(0),
+                   VF_Thresh(0),
+                   VF_LB(0),
+                   Ent_Filter(1),
+                   Ent_Value(.25),
+                   EF_LB(5);
+
+Vars: x(0),
+    HTemp(0),
+    LTemp(0),
+    HiHi1(0),
+    LoLo1(0),
+    HiHi2(0),
+    LoLo2(0),
+    HLper2(0),
+    LOalert(0),
+    LOentry(0),
+    LOexit(0),
+    LOrisk(0),
+    LOtarg(0),
+    LOtrail(0),
+    LOtrail_temp(0),
+    SHalert(0),
+    SHentry(0),
+    SHexit(0),
+    SHrisk(0),
+    SHtarg(0),
+    SHtrail(0),
+    SHtrail_temp(0),
+    MktPos(0),
+    Vol_Value(0),
+    RVol_Value(0),
+    Trade_On(0),
+    ENF_Value(0);
+
+
+//Begin main trading loop
+IF currentbar > HLper + 1 then BEGIN
+
+HLper2 = HLper * HL_Factor;
+ENF_Value = MinMove;
+if Ent_Filter = 1 then begin
+     ENF_Value = Average(TrueRange,EF_LB) * Ent_Value;
+End;
+
+//Find Highest High, its number of bars back, Lowest Low, its number of bars back and the Range
+    HiHi1 = Highest(High,HLper);
+    HiHi2 = Highest(High,HLper2);
+    LoLo1 = Lowest(Low,HLper);
+    LoLo2 = Lowest(Low,HLper2);
+    
+//Calculate Volatility Channel
+    Vol_Value = Average(TrueRange,VF_LB);
+         RVol_Value  = ( highest(high,VF_LB) - lowest(low,VF_LB) ) / Vol_Value;
+         
+ //Record Market position
+    MktPos  = MarketPosition;
+    
+    LOentry = 0;
+    LOexit = 0;
+    SHentry = 0;
+    SHexit = 0;
+    Trade_On = 0;
+    
+   If VF_Filter_Type = 0 Then Begin
+        LOentry = HiHi1 + ENF_Value;
+        LOexit = LoLo2 - ENF_Value;
+        SHentry = LoLo1 - ENF_Value;
+        SHexit = HiHi2 + ENF_Value;
+        Trade_On = 1;
+    end;
+    
+    //print("ENF_Value: ",ENF_Value);
+    If VF_Filter_Type = 1 Then Begin 
+       If TrueRange <= Vol_Value * VF_Thresh Then Begin 
+      // print(date," TR: ",Truerange,"  ATR: ",Vol_Value,"  VLev: ",Vol_Value * VF_Thresh);
+            LOentry = HiHi1 + ENF_Value;
+            LOexit = LoLo2 - ENF_Value;
+            SHentry = LoLo1 - ENF_Value;
+            SHexit = HiHi2 + ENF_Value;
+            Trade_On = 1;
+        end;
+    end;
+    
+    If VF_Filter_Type = 2 Then Begin 
+        If TrueRange > Vol_Value * VF_Thresh Then Begin 
+            LOentry = HiHi1 + ENF_Value;
+            LOexit = LoLo2 - ENF_Value;
+            SHentry = LoLo1 - ENF_Value;
+            SHexit = HiHi2 + ENF_Value;
+            Trade_On = 1;
+        end;
+    end;
+
+          If VF_Filter_Type = 3 Then Begin 
+       If RVol_Value <=  VF_Thresh Then Begin 
+            LOentry = HiHi1 + ENF_Value;
+            LOexit = LoLo2 - ENF_Value;
+            SHentry = LoLo1 - ENF_Value;
+            SHexit = HiHi2 + ENF_Value;
+            Trade_On = 1;
+        end;
+    end;
+    
+    If VF_Filter_Type = 4 Then Begin 
+        If  RVol_Value >  VF_Thresh Then Begin 
+            LOentry = HiHi1 + ENF_Value;
+            LOexit = LoLo2 - ENF_Value;
+            SHentry = LoLo1 - ENF_Value;
+            SHexit = HiHi2 + ENF_Value;
+            Trade_On = 1;
+        end;
+    end;
+   
+   print(date,"  Entry Orders: ");
+   print(" Highest High: ",HiHi1,"   Vol Filter: ",ENF_Value,"   Long Entry: ",LOentry," Lowest Low: ",LoLo1,"   Vol Filter: ",ENF_Value,"   Short Entry: ",SHentry);
+    print(date,"  Exit Orders: ");
+   print(" 2nd Highest High: ",HiHi2,"   Vol Filter: ",ENF_Value,"   Short Exit: ",SHexit," 2nd Lowest Low: ",LoLo2,"   Vol Filter: ",ENF_Value,"   Long Exit: ",LOexit);
+   print("    ");
+//Set Orders for new long
+if MktPos[1] <= 0 and MktPos[0] = 1 then begin
+          LOtarg = entryprice * ( 1 + ( TApct / 100 ) );
+          LOrisk = entryprice * ( 1 - ( RSpct / 100 ) );
+          LOtrail = entryprice * ( 1 - ( TSpct / 100 ) ); 
+end;
+
+//Update Trailing Stop
+if MktPos[0] = 1 then begin
+          LOtrail_temp = close * ( 1 - ( TSpct / 100 ) );
+          If LOtrail_temp > LOtrail then LOtrail = LOtrail_temp;
+end;
+
+//Set Orders for new short
+//if MktPos[1] >= 0 and MktPos[0] = 1 then begin
+if MktPos[1] >= 0 and MktPos[0] = -1 then begin
+          SHtarg = entryprice * ( 1 - ( TApct / 100 ) );
+          SHrisk = entryprice * (1 + ( RSpct / 100 ) );
+          SHtrail = entryprice * (1 + ( TSpct / 100 ) ); 
+end;
+
+//Update Trailing Stop
+if MktPos[0] = -1 then begin
+          SHtrail_temp = close + (1 * ( TSpct / 100 ) );
+          If SHtrail_temp < SHtrail then SHtrail = SHtrail_temp;
+end;
+
+//Start of Long Entry and Exit block  
+//Set Buy Signal when flat
+If Trade_On = 1  And MktPos = 0 then begin
+          Buy ("LOen") Next Bar LOentry stop;
+end;
+
+//Set Long Exit and Reverse when Long
+If MktPos = 1 then begin
+          Sell ("LOexit") Next Bar LOexit stop;
+end; 
+
+//Set Risk Exit when Long  
+If Risk_On = 1 And MktPos = 1 then begin
+          Sell ("LOrisk") Next Bar LOrisk stop;
+end;
+
+//Set Profit Exit when Long  
+If Trail_On = 1 And MktPos = 1 then begin
+          Sell ("LOtrail") Next Bar LOtrail stop;
+end;
+
+//Set Target Exit when Long  
+If Target_On = 1 And MktPos = 1 then begin
+          Sell ("LOtarg") Next Bar LOtarg limit;
+end;
+
+//End of Long Entry and Exit block
+
+//Start of Short Entry and Exit block
+//Set Sell Signal when flat 
+If Trade_On = 1 and MktPos = 0 then begin
+          Sell Short ("SHen") Next Bar SHentry stop;
+end;
+
+//Set Short Exit and Reverse when Short
+If MktPos = -1 then begin
+          Buy to Cover ("SHexit") Next Bar SHexit stop;
+end;
+
+//Set Risk Exit when Short  
+If Risk_On = 1 And MktPos = -1 then begin
+          Buy to Cover ("SHrisk") Next Bar SHrisk stop;
+end;
+
+//Set Profit Exit when Short  
+If Trail_On = 1 And MktPos = -1 then begin
+          Buy to Cover ("SHtrail") Next Bar SHtrail stop;
+end;
+
+//Set Target Exit when Short  
+If Target_On = 1 And MktPos = -1 then begin
+          Buy to Cover ("SHtarg") Next Bar SHtarg limit;
+end;
+
+//End of Short Entry and Exit block
+          
+END;          //End main loop
+
+
