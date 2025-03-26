@@ -15,9 +15,9 @@ Notes:
 	* Volatility defined as `TrueRange`
 
 Import:
-	DataSource:	            CSIFutures
+	DataSource:             CSIFutures
 	DataPath:               c:\UA\Data\WFA_Evaluation {"CSI"} // change to your CSI futures portfolio location
-	DataSource:	            Yahoo
+	DataSource:             Yahoo
 	IncludeList:            SPY
 	StartDate:              Earliest
 	EndDate:                Latest
@@ -25,7 +25,7 @@ Import:
 
 Settings:
 	DataFile:               csi_futures.rtd
-	StartDate:	            Earliest
+	StartDate:              Earliest
 	EndDate:                Latest
 	AccountSize:            100000
 	BarSize:                Daily
