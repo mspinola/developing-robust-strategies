@@ -15,30 +15,30 @@ Notes:
 	* Volatility defined as `TrueRange`
 
 Import:
-	DataSource:	        CSIFutures
-	DataPath:	        c:\UA\Data\WFA_Evaluation {"CSI"} // change to your CSI futures portfolio location
-	DataSource:	        Yahoo
-	IncludeList:        SPY
-	StartDate:	        Earliest
-	EndDate:            Latest
-	SaveAs:	            csi_futures.rtd
+	DataSource:	            CSIFutures
+	DataPath:               c:\UA\Data\WFA_Evaluation {"CSI"} // change to your CSI futures portfolio location
+	DataSource:	            Yahoo
+	IncludeList:            SPY
+	StartDate:              Earliest
+	EndDate:                Latest
+	SaveAs:	                csi_futures.rtd
 
 Settings:
-	DataFile:           csi_futures.rtd
-	StartDate:	        Earliest
-	EndDate:            Latest
-	AccountSize:        100000
-	BarSize:            Daily
+	DataFile:               csi_futures.rtd
+	StartDate:	            Earliest
+	EndDate:                Latest
+	AccountSize:            100000
+	BarSize:                Daily
 
 Parameters:
-	MA_FAST_LEN:        20 // 5, 10, 20
-	MA_SLOW_LEN:        80 // 20, 40, 80
-	VOL_FILTER_GAIN:    1.25
-	VOL_FILTER_LEN:     10
+	MA_FAST_LEN:            20 // 5, 10, 20
+	MA_SLOW_LEN:            80 // 20, 40, 80
+	VOL_FILTER_GAIN:        1.25
+	VOL_FILTER_LEN:         10
 
 Library:
-	curPosShort:        Side < 0
-	curPosLong:	        Side > 0
+	curPosShort:            Side < 0
+	curPosLong:             Side > 0
 
 Data:
 	maFast:	                MA(C, MA_FAST_LEN)
@@ -64,7 +64,7 @@ Template: PardoMacBase
 	QtyType:                Shares
 	MaxInvested:            S.Equity
 	MaxPositions:           1
-	Commission:	            1 * Contracts
+	Commission:             1 * Contracts
 	Slippage:               2 * TickSize
 
 Strategy: PardoMacNonReversingVolFilterNone
@@ -119,7 +119,7 @@ Benchmark: buy_and_hold
 	Quantity:               1
 	QtyType:                Shares
 	Side:                   Long
-	EntrySetup:	            Symbol = $SPY
+	EntrySetup:             Symbol = $SPY
 	ExitRule:               Dividend // reinvest
 
 
