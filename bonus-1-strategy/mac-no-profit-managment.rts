@@ -18,108 +18,108 @@ Import:
 	DataSource:	        CSIFutures
 	DataPath:	        c:\UA\Data\WFA_Evaluation {"CSI"} // change to your CSI futures portfolio location
 	DataSource:	        Yahoo
-	IncludeList:	    SPY
+	IncludeList:        SPY
 	StartDate:	        Earliest
-	EndDate:	        Latest
+	EndDate:            Latest
 	SaveAs:	            csi_futures.rtd
 
 Settings:
-	DataFile:	        csi_futures.rtd
+	DataFile:           csi_futures.rtd
 	StartDate:	        Earliest
-	EndDate:	        Latest
-	AccountSize:	    100000
-	BarSize:	        Daily
+	EndDate:            Latest
+	AccountSize:        100000
+	BarSize:            Daily
 
 Parameters:
-	MA_FAST_LEN:	    20 // 5, 10, 20
-	MA_SLOW_LEN:	    80 // 20, 40, 80
-	VOL_FILTER_GAIN: 	1.25
-	VOL_FILTER_LEN: 	10
+	MA_FAST_LEN:        20 // 5, 10, 20
+	MA_SLOW_LEN:        80 // 20, 40, 80
+	VOL_FILTER_GAIN:    1.25
+	VOL_FILTER_LEN:     10
 
 Library:
-	curPosShort:	    Side < 0
+	curPosShort:        Side < 0
 	curPosLong:	        Side > 0
 
 Data:
-	maFast:	            MA(C, MA_FAST_LEN)
-	maSlow:	            MA(C, MA_SLOW_LEN)
-	goLong:	            maFast[0] > maSlow[0] and maFast[1] < maSlow[1]
-	goShort:	        maFast[0] < maSlow[0] and maFast[1] > maSlow[1]
-	exitLong:	        not curPosShort and goShort
-	exitShort:          not curPosLong and goLong
+	maFast:	                MA(C, MA_FAST_LEN)
+	maSlow:	                MA(C, MA_SLOW_LEN)
+	goLong:	                maFast[0] > maSlow[0] and maFast[1] < maSlow[1]
+	goShort:                maFast[0] < maSlow[0] and maFast[1] > maSlow[1]
+	exitLong:               not curPosShort and goShort
+	exitShort:              not curPosLong and goLong
 
 	volatilityAve:	        MA(TrueRange, VOL_FILTER_LEN)
-	volatilityThreshold:	volatilityAve * VOL_FILTER_GAIN
-	vfLowValid: 	        TrueRange < volatilityThreshold
-	vfHighValid: 	        TrueRange > volatilityThreshold
+	volatilityThreshold:    volatilityAve * VOL_FILTER_GAIN
+	vfLowValid:             TrueRange < volatilityThreshold
+	vfHighValid:            TrueRange > volatilityThreshold
 
 Scan:
 	maFast:	                maFast
 	maSlow:	                maSlow
-	volatilityAve:	        volatilityAve
-	volatilityThreshold:	volatilityThreshold
+	volatilityAve:          volatilityAve
+	volatilityThreshold:    volatilityThreshold
 
 Template: PardoMacBase
-	Quantity:	    1
-	QtyType:	    Shares
-	MaxInvested:	S.Equity
-	MaxPositions:	1
-	Commission:	    1 * Contracts
-	Slippage:	    2 * TickSize
+	Quantity:               1
+	QtyType:                Shares
+	MaxInvested:            S.Equity
+	MaxPositions:           1
+	Commission:	            1 * Contracts
+	Slippage:               2 * TickSize
 
 Strategy: PardoMacNonReversingVolFilterNone
-	Using:	        PardoMacBase
-	Side:	        Long
-	EntrySetup: 	goLong
-	ExitRule:	    exitLong
+	Using:                  PardoMacBase
+	Side:                   Long
+	EntrySetup:             goLong
+	ExitRule:               exitLong
 
 Strategy: PardoMacNonReversingVolFilterLow
-	Using:	        PardoMacBase
-	Side:	        Long
-	EntrySetup: 	goLong and vfLowValid
-	ExitRule:	    exitLong
+	Using:                  PardoMacBase
+	Side:                   Long
+	EntrySetup:             goLong and vfLowValid
+	ExitRule:               exitLong
 
 Strategy: PardoMacNonReversingVolFilterHigh
-	Using:	        PardoMacBase
-	Side:	        Long
-	EntrySetup: 	goLong and vfHighValid
-	ExitRule:	    exitLong
+	Using:                  PardoMacBase
+	Side:                   Long
+	EntrySetup:             goLong and vfHighValid
+	ExitRule:               exitLong
 
 Strategy: PardoMacReversingVolFilterNone
-	Using:	        PardoMacBase
-	Side:	        Both
-	Quantity:	    if(goLong, 1, if(goShort, -1, 0))
-	EntrySetup: 	(goLong and not curPosLong) or (goShort and not curPosShort)
-	ExitRule:	    (exitLong and curPosLong) or (exitShort and curPosShort)
+	Using:                  PardoMacBase
+	Side:                   Both
+	Quantity:               if(goLong, 1, if(goShort, -1, 0))
+	EntrySetup:             (goLong and not curPosLong) or (goShort and not curPosShort)
+	ExitRule:               (exitLong and curPosLong) or (exitShort and curPosShort)
 
 Strategy: PardoMacReversingVolFilterLow
-	Using:	        PardoMacBase
-	Side:	        Both
-	Quantity:	    if(goLong, 1, if(goShort, -1, 0))
-	EntrySetup: 	(goLong and not curPosLong) or (goShort and not curPosShort) and vfLowValid
-	ExitRule:	    (exitLong and curPosLong) or (exitShort and curPosShort)
+	Using:                  PardoMacBase
+	Side:                   Both
+	Quantity:               if(goLong, 1, if(goShort, -1, 0))
+	EntrySetup:             (goLong and not curPosLong) or (goShort and not curPosShort) and vfLowValid
+	ExitRule:               (exitLong and curPosLong) or (exitShort and curPosShort)
 
 Strategy: PardoMacReversingVolFilterHigh
-	Using:	        PardoMacBase
-	Side:	        Both
-	Quantity:	    if(goLong, 1, if(goShort, -1, 0))
-	EntrySetup: 	(goLong and not curPosLong) or (goShort and not curPosShort) and vfHighValid
-	ExitRule:       (exitLong and curPosLong) or (exitShort and curPosShort)
+	Using:                  PardoMacBase
+	Side:                   Both
+	Quantity:               if(goLong, 1, if(goShort, -1, 0))
+	EntrySetup:             (goLong and not curPosLong) or (goShort and not curPosShort) and vfHighValid
+	ExitRule:               (exitLong and curPosLong) or (exitShort and curPosShort)
 
 Charts:
 	maFast:	                {#} maFast
 	maSlow:	                {#} maSlow
-	volatilityThreshold:	{#} volatilityThreshold
-	goLong: 	            {^} goLong
-	exitLong: 	            {^} exitLong
-	goShort: 	            {^} goShort
-	exitShort: 	            {^} exitShort
+	volatilityThreshold:    {#} volatilityThreshold
+	goLong:                 {^} goLong
+	exitLong:               {^} exitLong
+	goShort:                {^} goShort
+	exitShort:              {^} exitShort
 
 Benchmark: buy_and_hold
-	Quantity:	            1
-	QtyType:	            Shares
-	Side:   	            Long
+	Quantity:               1
+	QtyType:                Shares
+	Side:                   Long
 	EntrySetup:	            Symbol = $SPY
-	ExitRule:	            Dividend // reinvest
+	ExitRule:               Dividend // reinvest
 
 
